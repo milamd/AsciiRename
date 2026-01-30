@@ -4,7 +4,9 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#include <filesystem>
 #include <string>
+#include <vector>
 
 namespace AsciiRename
 {
@@ -26,6 +28,20 @@ bool TryGetUtf8(
     std::string &output);
 
 bool TryGetAscii(std::string const &utf8Input, std::string &output);
+
+// Sanitize a string by replacing shell metacharacters with underscores
+// Handles: ; $ ` | & > < ' " \ * ? [ ] ( ) ! ~ # and newlines
+std::string SanitizeForShell(const std::string &input);
+
+// Extract path components that should be renamed, in bottom-up order
+// (deepest components first). Skips root directories, drive letters, and . / ..
+std::vector<std::filesystem::path> GetRenameableComponents(
+#ifdef _WIN32
+    const std::wstring &pathStr
+#else
+    const std::string &pathStr
+#endif
+);
 
 } // namespace AsciiRename
 
