@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstring>
 #include <stdint.h>
+#include <vector>
 
 #include <filesystem>
 
@@ -59,7 +60,7 @@ bool TryGetUtf8(
     }
     catch (...)
     {
-        output = nullptr;
+        output = std::string();
         return false;
     }
 }
@@ -91,17 +92,19 @@ static void anyascii_string(const char *in, char *out)
 
 bool TryGetAscii(std::string const &utf8Input, std::string &output)
 {
-    char *buffer = new char[utf8Input.length()];
+    // Allocate buffer with 4x input size to handle worst-case Unicode expansion
+    // (some Unicode characters expand to multiple ASCII characters during transliteration)
+    // +1 for null terminator
+    std::vector<char> buffer(utf8Input.length() * 4 + 1);
     try
     {
-        anyascii_string(utf8Input.c_str(), buffer);
-        output = std::string(buffer);
+        anyascii_string(utf8Input.c_str(), buffer.data());
+        output = std::string(buffer.data());
         return true;
     }
     catch (...)
     {
-        output = nullptr;
-        delete buffer;
+        output = std::string();
         return false;
     }
 }
